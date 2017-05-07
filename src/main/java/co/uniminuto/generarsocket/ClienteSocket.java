@@ -5,6 +5,7 @@
  */
 package co.uniminuto.generarsocket;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,9 +26,9 @@ public class ClienteSocket {
     public static void main(String[] args) {
         try {
             Socket socket = null;
-            String host = "127.0.0.1";
+            String host = "172.17.1.2";
             
-            socket = new Socket(host, 4444);
+            socket = new Socket(host, 11207);
             
 //            File file = new File("f:\\copiag\\test.xml");
             // Get the size of the file
@@ -35,16 +36,19 @@ public class ClienteSocket {
             Path pathArchSalida=Paths.get("f:","copiag","test.xml");
           
             InputStream in =socket.getInputStream();
-            OutputStream out=new FileOutputStream(pathArchSalida.toFile());
-            
-            
-           byte[] bytes = new byte[16 * 1024];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            OutputStream salida=socket.getOutputStream();
+            String strDatoSocket="1*111*";
+           byte[] bytesPeticion = strDatoSocket.getBytes();
             int count;
-            while ((count = in.read(bytes)) > 0) {
-                out.write(bytes, 0, count);
+            while ((count = in.read(bytesPeticion)) > 0) {
+                salida.write(bytesPeticion, 0, count);
             }
+            byte[] respuesta=new byte[Integer.MAX_VALUE];
+            in.read(bytesPeticion);
+            System.out.println("Respuesta= "+respuesta);
             
-            out.close();
+            baos.close();
             in.close();
             socket.close();
         } catch (IOException ex) {

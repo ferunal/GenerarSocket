@@ -13,11 +13,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -27,18 +30,24 @@ public class ServicioSocket {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
-Socket socket = null;
+        Socket socket = null;
         try {
-            serverSocket = new ServerSocket(4444);
+            serverSocket = new ServerSocket(11207);
         } catch (IOException ex) {
-            System.out.println("Can't setup server on this port number. ");
+            System.out.println("Puerto ocupado");
         }
         try {
 
-            
-            byte[] arrByteDatosArch = Files.readAllBytes(Paths.get("F:", "copiag", "test2.xml"));
+            List<String> filasArchivo = Files.readAllLines(Paths.get(System.getProperty("user.home"), "Documents", "seaq", "desarrollo", "LaFayette", "datos", "DatosPruebaLF.txt"));
+            //byte[] arrByteDatosArch = Files.readAllBytes(Paths.get(System.getProperty("user.home"),"Documents","seaq","desarrollo","LaFayette","datos", "DatosPruebaLF.txt"));
+            String strBDatos = filasArchivo.stream().map(e -> e).collect(Collectors.joining("\n"));
+
+            String datoArchivo = new String(strBDatos);
+            System.out.println("Datos archivo: " + datoArchivo);
             //InputStream in = Files.newInputStream(, LinkOption.NOFOLLOW_LINKS);
             OutputStream out = null;
+            InputStream in = null;
+
             while (true) {
                 try {
                     socket = serverSocket.accept();
@@ -47,13 +56,31 @@ Socket socket = null;
                 }
 
                 try {
-                    out = socket.getOutputStream();
-                    out.write(arrByteDatosArch);
-                      out.write('\n');
+                    byte[] byteComando = new byte[2048*1024];
+                    in = socket.getInputStream();
+                    in.read(byteComando);
+                    String strComando = new String(byteComando);
 
+//                    if (strComando.trim().equals("1*111*")) {
+                        out = socket.getOutputStream();
+                        out.write(strBDatos.getBytes());
+//                    } else {
+//                        System.out.println("Datos ingresados: " + strComando);
+//                    }
+
+                    //  out.write('\n');
                 } catch (IOException ex) {
                     System.out.println("Error al enviar dato. ");
                 }
+
+//                try {
+//                    out = socket.getOutputStream();
+//                    out.write(strBDatos.getBytes());
+//                    //  out.write('\n');
+//
+//                } catch (IOException ex) {
+//                    System.out.println("Error al enviar dato. ");
+//                }
 //            try {
 //                in = socket.getInputStream();
 //               
@@ -72,12 +99,10 @@ Socket socket = null;
 //            while ((count = in.read(bytes)) > 0) {
 //                out.write(bytes, 0, count);
 //            }
-               out.flush();
-               out.close();
-              
+                out.flush();
+                out.close();
+
 //            in.close();
-                
-                
             }
 
         } catch (IOException ex) {
